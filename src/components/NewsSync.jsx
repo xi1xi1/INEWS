@@ -7,7 +7,6 @@ const NewsSync = () => {
   const [lastSync, setLastSync] = useState(null);
   const [syncResults, setSyncResults] = useState(null);
 
-  // 同步特定分类
   const syncNews = async (category = null) => {
     setSyncing(true);
     setProgress(`正在同步 ${category ? getCategoryName(category) : '全部'} 新闻...`);
@@ -21,17 +20,24 @@ const NewsSync = () => {
         const articles = await NewsService.fetchFromMediastack(category, null, 10);
         const savedArticles = await NewsService.saveToSupabase(articles);
         result = {
+          type: 'single',
           category,
           fetched: articles.length,
-          saved: savedArticles.length
+          saved: savedArticles.length,
+          totalSaved: savedArticles.length
         };
       } else {
         // 同步所有分类
         result = await NewsService.syncAllCategories();
+        result.type = 'all';
       }
       
       setSyncResults(result);
-      setProgress(`同步完成！获取到 ${result.totalSaved || result.saved} 条新闻`);
+      
+      // 统一处理显示数量
+      const savedCount = result.totalSaved || result.saved || 0;
+      setProgress(`同步完成！获取到 ${savedCount} 条新闻`);
+      
       setLastSync(new Date().toLocaleString());
     } catch (error) {
       console.error('同步失败:', error);
@@ -48,7 +54,6 @@ const NewsSync = () => {
       sports: '体育',
       entertainment: '娱乐',
       business: '财经'
-      // 移除了 health 和 science
     };
     return categoryNames[category] || category;
   };
@@ -149,7 +154,6 @@ const NewsSync = () => {
           >
             同步财经新闻
           </button>
-          {/* 移除了健康科学按钮 */}
         </div>
 
         <div>
@@ -196,11 +200,11 @@ const NewsSync = () => {
           fontSize: '14px'
         }}>
           <h5 style={{ margin: '0 0 10px 0', color: '#333' }}>同步结果:</h5>
-          {syncResults.results ? (
+          {syncResults.type === 'all' ? (
             // 全部同步结果
             <div>
-              <p><strong>总保存数:</strong> {syncResults.totalSaved} 条</p>
-              {syncResults.results.map((result, index) => (
+              <p><strong>总保存数:</strong> {syncResults.totalSaved || 0} 条</p>
+              {syncResults.results && syncResults.results.map((result, index) => (
                 <div key={index} style={{ 
                   display: 'flex', 
                   justifyContent: 'space-between',
@@ -211,7 +215,7 @@ const NewsSync = () => {
                   <span>
                     {result.error ? 
                       `错误: ${result.error}` : 
-                      `获取 ${result.fetched} 条, 保存 ${result.saved} 条`
+                      `获取 ${result.fetched || 0} 条, 保存 ${result.saved || 0} 条`
                     }
                   </span>
                 </div>
@@ -221,7 +225,7 @@ const NewsSync = () => {
             // 单个分类同步结果
             <p>
               {getCategoryName(syncResults.category)}: 
-              获取 {syncResults.fetched} 条, 保存 {syncResults.saved} 条
+              获取 {syncResults.fetched || 0} 条, 保存 {syncResults.saved || 0} 条
             </p>
           )}
         </div>
