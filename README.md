@@ -28,7 +28,7 @@ iNews 是一个基于 React + Supabase 的新闻聚合平台，提供新闻浏�
 内容管理：文章数据管理和监控
 
 ## 📁 项目结构
-
+```
 inews-web/
 ├── 📁 public/                 # 静态资源目录
 ├── 📁 src/                    # 源代码目录
@@ -83,7 +83,7 @@ pages/
 services/
 ├── newsService.js             # 新闻数据服务
 └── statsService.js            # 统计数据服务
-
+```
 
 ## 🛠️ 技术栈
 
